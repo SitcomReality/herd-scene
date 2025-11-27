@@ -24,6 +24,7 @@ export class Character {
         this.speed = 0.1;
         this.bobOffset = 0;
         this.torsoTilt = 0; // Radians, rotation of torso around hip joint
+        this.headTilt = 0;
 
         // Procedural Variation (slight differences in limb lengths)
         this.variations = {
@@ -48,12 +49,14 @@ export class Character {
         this.leftArm = new PIXI.Graphics();
         this.rightArm = new PIXI.Graphics();
         this.bodyG = new PIXI.Graphics();
+        this.headG = new PIXI.Graphics();
 
         this.graphics.addChild(this.leftLeg);
         this.graphics.addChild(this.rightLeg);
         this.graphics.addChild(this.leftArm);
         this.graphics.addChild(this.rightArm);
         this.graphics.addChild(this.bodyG);
+        this.graphics.addChild(this.headG);
 
         // Shadow (simple ellipse texture could be faster, but we'll draw it)
         this.shadow = new PIXI.Graphics();
@@ -110,6 +113,7 @@ export class Character {
         this.leftArm = null;
         this.rightArm = null;
         this.bodyG = null;
+        this.headG = null;
 
         this.animation = null;
         this.renderer = null;

@@ -30,6 +30,7 @@ export class CharacterAnimation {
             this.blendFromPose = {
                 bobOffset: c.bobOffset || 0,
                 torsoTilt: c.torsoTilt || 0,
+                headTilt: c.headTilt || 0,
                 leftLeg: c.angles.leftLeg || 0,
                 rightLeg: c.angles.rightLeg || 0,
                 leftArm: c.angles.leftArm || 0,
@@ -61,6 +62,7 @@ export class CharacterAnimation {
             finalPose = {
                 bobOffset: lerp(this.blendFromPose.bobOffset, targetPose.bobOffset, alpha),
                 torsoTilt: lerp(this.blendFromPose.torsoTilt, targetPose.torsoTilt, alpha),
+                headTilt: lerp(this.blendFromPose.headTilt, targetPose.headTilt, alpha),
                 leftLeg: lerp(this.blendFromPose.leftLeg, targetPose.leftLeg, alpha),
                 rightLeg: lerp(this.blendFromPose.rightLeg, targetPose.rightLeg, alpha),
                 leftArm: lerp(this.blendFromPose.leftArm, targetPose.leftArm, alpha),
@@ -76,6 +78,7 @@ export class CharacterAnimation {
         // Apply final pose to character
         c.bobOffset = finalPose.bobOffset;
         c.torsoTilt = finalPose.torsoTilt;
+        c.headTilt = finalPose.headTilt;
         c.angles.leftLeg = finalPose.leftLeg;
         c.angles.rightLeg = finalPose.rightLeg;
         c.angles.leftArm = finalPose.leftArm;
@@ -86,6 +89,7 @@ export class CharacterAnimation {
         const pose = {
             bobOffset: 0,
             torsoTilt: 0,
+            headTilt: 0,
             leftLeg: 0,
             rightLeg: 0,
             leftArm: 0,
@@ -97,10 +101,15 @@ export class CharacterAnimation {
         const idleLArm = Math.sin(t * 0.05) * 0.1;
         const idleRArm = Math.cos(t * 0.05) * 0.1;
 
+        // Micro-movements for "Hold" / Idle
+        // Sum of sines works for cheap organic feel
+        const headNoise = Math.sin(t * 0.2) * 0.05 + Math.sin(t * 0.07 + 2) * 0.03;
+
         if (state === ANIMATION_STATES.IDLE) {
             // Breathing / Bobbing
             pose.bobOffset = idleBob;
-            pose.torsoTilt = 0;
+            pose.torsoTilt = Math.sin(t * 0.03) * 0.02; // Tiny torso drift
+            pose.headTilt = headNoise; // Look around slightly
             pose.leftLeg = 0;
             pose.rightLeg = 0;
             pose.leftArm = idleLArm;
@@ -109,6 +118,7 @@ export class CharacterAnimation {
         else if (state === ANIMATION_STATES.WALK) {
             pose.bobOffset = Math.abs(Math.sin(t * 0.5)) * 4; // Bob up and down
             pose.torsoTilt = 0;
+            pose.headTilt = Math.sin(t * 0.5) * 0.05; // Head bob
 
             // Walk Cycle
             const legAmp = 0.5;
@@ -125,6 +135,7 @@ export class CharacterAnimation {
             // Running bob and forward lean
             pose.bobOffset = Math.abs(Math.sin(t * 0.45)) * 5;
             pose.torsoTilt = 0.30;
+            pose.headTilt = -0.15; // Look up/forward slightly to compensate lean
 
             // Run Cycle (More aggressive angles)
             const legAmp = 1.2;
@@ -150,6 +161,7 @@ export class CharacterAnimation {
             // Interpolate from IDLE bob (idleBob) to 0 (at max bend)
             pose.bobOffset = idleBob * (1 - cycle);
             pose.torsoTilt = cycle * maxTilt;
+            pose.headTilt = cycle * -0.2; // Look at ground
 
             // Slight knee bend
             const legBendBase = 0.3;
@@ -173,6 +185,7 @@ export class CharacterAnimation {
             // Fallback to a neutral pose
             pose.bobOffset = 0;
             pose.torsoTilt = 0;
+            pose.headTilt = 0;
             pose.leftLeg = 0;
             pose.rightLeg = 0;
             pose.leftArm = idleLArm;

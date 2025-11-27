@@ -52,13 +52,10 @@ export class CrowdManager {
             let finalTargetPoints = [];
 
             if (npcCount < pointCount) {
-                // Constraint 2: Fewer NPCs than points. Spread them evenly across the whole shape.
-                // targetPoints must be stable (spatially sorted) for this sampling to work.
-                const step = pointCount / npcCount;
-                for (let i = 0; i < npcCount; i++) {
-                    const idx = Math.floor(i * step);
-                    finalTargetPoints.push(targetPoints[idx]);
-                }
+                // Constraint 2: Fewer NPCs than points. 
+                // Since points are now pre-shuffled by Generator, we can just take the first N
+                // to get a random uniform distribution of the shape.
+                finalTargetPoints = targetPoints.slice(0, npcCount);
             } else {
                 // Constraint 1: Enough NPCs. Use all points.
                 finalTargetPoints = [...targetPoints];

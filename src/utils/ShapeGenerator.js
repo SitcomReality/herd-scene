@@ -56,17 +56,21 @@ export class ShapeGenerator {
                 if (data[i] > 128) { 
                     // Add some jitter so they aren't in a perfect grid
                     points.push({
-                        x: x + (Math.random() - 0.5) * (density * 0.5),
-                        y: y + (Math.random() - 0.5) * (density * 0.5)
+                        x: x + (Math.random() - 0.5) * (density * 0.9),
+                        y: y + (Math.random() - 0.5) * (density * 0.9)
                     });
                 }
             }
         }
         
-        // NOTE: Do not shuffle points here.
-        // Keeping a stable point order allows us to deterministically
-        // distribute a smaller number of NPCs across the full shape
-        // inside the CrowdManager target assignment logic.
+        // Shuffle points. 
+        // This is crucial: scanning creates a grid-ordered list.
+        // If we later sample a subset (e.g., first 100 points), we get stripes.
+        // Shuffling ensures any subset is a valid random distribution of the shape.
+        for (let i = points.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [points[i], points[j]] = [points[j], points[i]];
+        }
 
         return points;
     }
@@ -150,12 +154,19 @@ export class ShapeGenerator {
                 const i = (y * width + x) * 4;
                 if (data[i] > 128) {
                     points.push({
-                         x: x + (Math.random() - 0.5) * (density * 0.4),
-                         y: y + (Math.random() - 0.5) * (density * 0.4)
+                         x: x + (Math.random() - 0.5) * (density * 0.9),
+                         y: y + (Math.random() - 0.5) * (density * 0.9)
                     });
                 }
             }
         }
+        
+        // Shuffle
+        for (let i = points.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [points[i], points[j]] = [points[j], points[i]];
+        }
+
         return points;
     }
 
