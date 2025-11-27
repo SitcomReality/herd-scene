@@ -92,30 +92,38 @@ export class NPCController {
         const dist = Math.sqrt(dx*dx + dy*dy);
 
         if (dist < NPC_PARAMS.formationArrivalDist) {
-            // Arrived
+            // Arrived: ease into a relaxed idle facing the camera (front)
             c.state = ANIMATION_STATES.IDLE;
             c.speed = 0.1; // Slow breathing
             
-            // Face forward (0) slowly
+            // Face forward (0) smoothly, but more gently than when running
             const diff = this.shortestAngleDist(c.facing, 0); // 0 is front
-            if (Math.abs(diff) > 0.05) {
-                c.facing += Math.sign(diff) * NPC_PARAMS.turnSpeed * dt;
+            const turnAmount = NPC_PARAMS.turnSpeed * 0.5 * dt;
+
+            if (Math.abs(diff) > 0.01) {
+                if (Math.abs(diff) <= turnAmount) {
+                    c.facing = 0;
+                } else {
+                    c.facing += Math.sign(diff) * turnAmount;
+                }
             } else {
                 c.facing = 0;
             }
         } else {
-            // Move towards target
-            c.state = ANIMATION_STATES.RUN;
-            c.speed = NPC_PARAMS.formationSpeed * 0.1; // Map to animation speed
+            // Move towards target with eased slowdown as we approach
 
-            this.targetFacing = Math.atan2(dx, dy); // Note: standard atan2 is (y, x), but our coords are rotated? 
-            // Wait, previous code: c.x += Math.sin(c.facing)... c.y += Math.cos(c.facing)
-            // This implies 0 angle is +Y (Down). 
-            // Standard atan2(y, x) gives angle from X axis.
-            // dx = sin(a) * dist, dy = cos(a) * dist
-            // tan(a) = dx/dy -> a = atan2(dx, dy)
-            
-            // Correct logic for this system:
+            // Running animation, but we'll modulate actual movement speed by distance
+            c.state = ANIMATION_STATES.RUN;
+
+            // Ease movement speed based on remaining distance
+            const slowRadius = NPC_PARAMS.formationArrivalDist * 5;
+            const t = Math.min(1, dist / slowRadius);
+            const moveSpeed = NPC_PARAMS.formationSpeed * (0.2 + 0.8 * t); // never fully stops until arrival
+
+            // Map movement speed to animation speed so legs match pace
+            c.speed = moveSpeed * 0.1;
+
+            // Compute target facing towards the formation point
             const angleToTarget = Math.atan2(dx, dy); 
             
             // Smooth turn
@@ -132,8 +140,8 @@ export class NPCController {
             c.facing = (c.facing % (Math.PI * 2));
 
             // Move
-            c.x += Math.sin(c.facing) * NPC_PARAMS.formationSpeed * dt;
-            c.y += Math.cos(c.facing) * NPC_PARAMS.formationSpeed * dt;
+            c.x += Math.sin(c.facing) * moveSpeed * dt;
+            c.y += Math.cos(c.facing) * moveSpeed * dt;
         }
     }
 

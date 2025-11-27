@@ -7,6 +7,7 @@ export class SandboxUI {
         this.manager = game.sequenceManager;
         this.selectedFrameIndex = -1;
         this.showSettings = false;
+        this.dragSourceIndex = null; // for timeline drag-and-drop reordering
 
         // Create UI Root
         this.root = document.createElement('div');
@@ -186,6 +187,7 @@ export class SandboxUI {
         this.manager.sequence.forEach((frame, index) => {
             const el = document.createElement('div');
             el.className = `timeline-frame ${index === this.manager.currentFrameIndex ? 'active' : ''} ${index === this.selectedFrameIndex ? 'selected' : ''}`;
+            el.setAttribute('draggable', 'true');
             
             let icon = '❓';
             let label = frame.content || '---';
@@ -206,6 +208,60 @@ export class SandboxUI {
                 this.onSequenceUpdate(); // Re-render to show selection
                 this.updateInspector();
             };
+
+            // Drag-and-drop reordering handlers
+            el.addEventListener('dragstart', (e) => {
+                this.dragSourceIndex = index;
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                    // Needed for Firefox
+                    e.dataTransfer.setData('text/plain', String(index));
+                }
+            });
+
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'move';
+                }
+            });
+
+            el.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (this.dragSourceIndex === null || this.dragSourceIndex === index) return;
+
+                const seq = this.manager.sequence;
+                if (!seq || seq.length === 0) return;
+
+                // Capture current active and selected frame IDs before mutation
+                const activeIndex = this.manager.currentFrameIndex;
+                const activeId = (activeIndex >= 0 && activeIndex < seq.length) ? seq[activeIndex].id : null;
+                const selectedIndex = this.selectedFrameIndex;
+                const selectedId = (selectedIndex >= 0 && selectedIndex < seq.length) ? seq[selectedIndex].id : null;
+
+                const from = this.dragSourceIndex;
+                const to = index;
+
+                const [moved] = seq.splice(from, 1);
+                // Adjust target index if removing an earlier element shifts indices
+                const insertIndex = from < to ? to - 1 : to;
+                seq.splice(insertIndex, 0, moved);
+
+                // Recompute indices based on IDs so active/selected frames follow their data
+                const findIndexById = (id) => id == null ? -1 : seq.findIndex(f => f.id === id);
+
+                this.manager.currentFrameIndex = findIndexById(activeId);
+                this.selectedFrameIndex = findIndexById(selectedId);
+
+                this.dragSourceIndex = null;
+
+                // Notify manager/UI of sequence change
+                this.manager.emitChange();
+            });
+
+            el.addEventListener('dragend', () => {
+                this.dragSourceIndex = null;
+            });
 
             this.timelineEl.appendChild(el);
         });

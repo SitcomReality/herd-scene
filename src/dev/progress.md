@@ -22,10 +22,10 @@
 - [x] Refined formation target assignment to reduce late “musical chairs” cross-map treks.
 - [x] Added multiline TEXT frame support so multiple lines render as separate rows.
 - [x] Added keyboard shortcuts: U to hide/show UI, Space to toggle Play/Stop.
+- [x] Added drag-and-drop reordering to the timeline so frames can be rearranged visually.
+- [x] Added eased formation arrival so NPCs slow down as they reach targets and settle into a natural front-facing idle pose.
 
 ## Todo / Remaining
-- [ ] Add drag-and-drop reordering to the timeline.
-- [ ] Add transitions/tweens for formation arrival (ease-in slow down).
-- [ ] "Hold" logic refinement: Make NPCs face camera more naturally after arriving.
+- [ ] "Hold" logic refinement: add subtle idle variation while holding formation (micro head/torso motion).
 - [ ] Add "Explode" or "Scatter" transition effect between frames?
 - [ ] Performance: Optimize spatial sort if NPC count > 1000.
