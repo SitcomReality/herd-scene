@@ -33,23 +33,30 @@ export class CrowdManager {
         if (mode === 'WANDER') {
             controllers.forEach(c => c.clearFormationTarget());
         } else if (mode === 'FORMATION') {
-            // Assign points to NPCs
-            // Simple approach: Assign i-th point to i-th NPC
-            // If points > NPCs, some points are ignored.
-            // If NPCs > points, extras wander/idle? Let's have them move to edges or just wander.
-            
-            // Randomize array to prevent "striping" artifacts if the list is ordered by creation
-            // (Optional, skipping for stability for now)
+            const npcCount = controllers.length;
+            const pointCount = targetPoints.length;
 
-            for (let i = 0; i < controllers.length; i++) {
-                if (i < targetPoints.length) {
-                    controllers[i].setFormationTarget(targetPoints[i]);
-                } else {
-                    // Extra NPC
-                    // Send to a random spot on the edge or just let wander?
-                    // Let's force them to wander away from center to clear the canvas
-                    // or just let them wander normally.
-                    controllers[i].clearFormationTarget(); 
+            if (pointCount === 0) {
+                // Nothing to form; fall back to wander
+                controllers.forEach(c => c.clearFormationTarget());
+                return;
+            }
+
+            if (npcCount <= pointCount) {
+                // Fewer NPCs than points: spread them evenly across the whole shape
+                const step = pointCount / npcCount;
+                for (let i = 0; i < npcCount; i++) {
+                    const idx = Math.floor(i * step);
+                    controllers[i].setFormationTarget(targetPoints[idx]);
+                }
+            } else {
+                // More NPCs than points: first fill all points, extras wander
+                for (let i = 0; i < npcCount; i++) {
+                    if (i < pointCount) {
+                        controllers[i].setFormationTarget(targetPoints[i]);
+                    } else {
+                        controllers[i].clearFormationTarget();
+                    }
                 }
             }
         }
