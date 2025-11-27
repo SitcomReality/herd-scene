@@ -207,10 +207,11 @@ export class SandboxUI {
         
         let contentInput = '';
         if (frame.type === FRAME_TYPES.TEXT) {
+            // Use a textarea to allow multiple lines
             contentInput = `
                 <div class="form-group">
-                    <label>Text</label>
-                    <input type="text" id="insp-content" value="${frame.content}">
+                    <label>Text (use Enter for new lines)</label>
+                    <textarea id="insp-content" style="width:100%; height:80px; background:#333; color:#fff; border:1px solid #555; padding:6px; border-radius:4px;">${frame.content || ''}</textarea>
                 </div>
             `;
         } else if (frame.type === FRAME_TYPES.SHAPE) {
@@ -239,9 +240,16 @@ export class SandboxUI {
         // Bind inputs
         const contentEl = this.inspectorContentEl.querySelector('#insp-content');
         if (contentEl) {
-            contentEl.onchange = (e) => {
-                this.manager.updateFrame(this.selectedFrameIndex, { content: e.target.value });
-            };
+            // For textarea we want live updates; for select use change
+            if (contentEl.tagName.toLowerCase() === 'textarea') {
+                contentEl.oninput = (e) => {
+                    this.manager.updateFrame(this.selectedFrameIndex, { content: e.target.value });
+                };
+            } else {
+                contentEl.onchange = (e) => {
+                    this.manager.updateFrame(this.selectedFrameIndex, { content: e.target.value });
+                };
+            }
         }
 
         const durEl = this.inspectorContentEl.querySelector('#insp-duration');

@@ -15,15 +15,33 @@ export class ShapeGenerator {
         // Fill background white, text black (or check alpha)
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, width, height);
-        
-        // Config font
-        const fontSize = Math.min(width / (text.length * 0.7), height * 0.6);
+
+        // Support multiline text: split on newlines and trim empty lines
+        const lines = (text || '').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const safeLines = lines.length > 0 ? lines : ['']; // ensure at least one line
+
+        // Choose font size to fit horizontally and vertically.
+        // Compute max font size that fits width per character and also fits total height given number of lines.
+        // Start with a width-based estimate and clamp by height-based estimate.
+        // Use a conservative per-character estimate (0.7 * fontSize per char width)
+        const avgChars = Math.max(...safeLines.map(l => l.length), 1);
+        const widthBased = Math.floor(width / (Math.max(avgChars, 1) * 0.7));
+        const heightBased = Math.floor((height * 0.8) / safeLines.length); // leave some padding
+        const fontSize = Math.max(8, Math.min(widthBased, heightBased));
+
         ctx.font = `bold ${fontSize}px Arial, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
-        
-        ctx.fillText(text, width / 2, height / 2);
+
+        // Vertical layout: center the block of lines in the canvas
+        const lineHeight = fontSize * 1.05;
+        const blockHeight = lineHeight * safeLines.length;
+        const startY = (height / 2) - (blockHeight / 2) + (lineHeight / 2);
+
+        for (let i = 0; i < safeLines.length; i++) {
+            ctx.fillText(safeLines[i], width / 2, startY + i * lineHeight);
+        }
 
         const imgData = ctx.getImageData(0, 0, width, height);
         const data = imgData.data;
