@@ -45,6 +45,14 @@ export class ShapeGenerator {
             }
         }
         
+        // Shuffle points so subsets sample the whole shape instead of top-left first
+        for (let i = points.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = points[i];
+            points[i] = points[j];
+            points[j] = tmp;
+        }
+
         return points;
     }
 
