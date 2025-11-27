@@ -35,9 +35,13 @@ export class SandboxUI {
             
             // Sequence Params
             seqText: "HELLO",
+            seqShape: "HEART",
             seqDuration: 5,
             addToSequence: () => {
                 game.sequenceManager.addFrame(FRAME_TYPES.TEXT, params.seqText, params.seqDuration);
+            },
+            addShapeToSequence: () => {
+                game.sequenceManager.addFrame(FRAME_TYPES.SHAPE, params.seqShape, params.seqDuration);
             },
             addWanderToSequence: () => {
                 game.sequenceManager.addFrame(FRAME_TYPES.WANDER, null, params.seqDuration);
@@ -59,6 +63,10 @@ export class SandboxUI {
         folderSeq.add(params, 'seqText').name('Text Input');
         folderSeq.add(params, 'seqDuration', 1, 20).name('Duration (s)');
         folderSeq.add(params, 'addToSequence').name('Add Text Frame');
+        
+        folderSeq.add(params, 'seqShape', ['HEART', 'STAR', 'CIRCLE']).name('Shape Type');
+        folderSeq.add(params, 'addShapeToSequence').name('Add Shape Frame');
+
         folderSeq.add(params, 'addWanderToSequence').name('Add Wander Frame');
         folderSeq.add(params, 'playSequence').name('▶ Play Sequence');
         folderSeq.add(params, 'stopSequence').name('■ Stop');

@@ -7,9 +7,15 @@
 - [x] Updated `CrowdManager` to handle target assignment (distributing points to NPCs).
 - [x] Added UI controls to design a sequence of text/wander frames.
 
+## Phase 2: Refinement & Variety
+- [x] Added more shape presets: Heart, Star, Circle using canvas scan method.
+- [x] Improved target assignment algorithm using spatial sorting (Y then X) to minimize path crossing.
+- [x] Updated SequenceManager to handle `SHAPE` frame types.
+- [x] Updated UI to include Shape selection and insertion.
+
 ## Todo / Remaining
-- [ ] Implement visual timeline editor (currently just text input).
-- [ ] Better target assignment algorithm (currently greedy, might cross paths).
-- [ ] Add more shape presets (Hearts, Stars, etc).
-- [ ] Add transitions/tweens for formation arrival.
-- [ ] Add "Hold" logic (NPCs arrive and face forward) - partially implemented.
+- [ ] Implement visual timeline editor (currently just adds to invisible list).
+- [ ] Add transitions/tweens for formation arrival (ease-in slow down).
+- [ ] "Hold" logic refinement: Make NPCs face camera more naturally after arriving.
+- [ ] Add "Explode" or "Scatter" transition effect between frames?
+- [ ] Performance: Optimize spatial sort if NPC count > 1000.

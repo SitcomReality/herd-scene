@@ -2,7 +2,8 @@ import { ShapeGenerator } from '../utils/ShapeGenerator.js';
 
 export const FRAME_TYPES = {
     WANDER: 'WANDER',
-    TEXT: 'TEXT'
+    TEXT: 'TEXT',
+    SHAPE: 'SHAPE'
 };
 
 export class SequenceManager {
@@ -66,6 +67,11 @@ export class SequenceManager {
 
     applyFrame(frame) {
         console.log(`Applying frame: ${frame.type} - ${frame.content}`);
+        const w = this.app.screen.width;
+        const h = this.app.screen.height;
+        const cx = w / 2;
+        const cy = h / 2;
+
         if (frame.type === FRAME_TYPES.WANDER) {
             this.crowdManager.setMode('WANDER');
         } else if (frame.type === FRAME_TYPES.TEXT) {
@@ -74,6 +80,25 @@ export class SequenceManager {
                 this.app.screen.width, 
                 this.app.screen.height
             );
+            this.crowdManager.setMode('FORMATION', points);
+        } else if (frame.type === FRAME_TYPES.SHAPE) {
+            let points = [];
+            const s = Math.min(w, h) / 3; // Base scale
+            
+            switch(frame.content) {
+                case 'HEART':
+                    // Heart math is small (-16 to 16), so we scale up significantly
+                    points = ShapeGenerator.getHeartPoints(cx, cy, s / 15);
+                    break;
+                case 'STAR':
+                    points = ShapeGenerator.getStarPoints(cx, cy, s, s * 0.4);
+                    break;
+                case 'CIRCLE':
+                    points = ShapeGenerator.getCirclePoints(cx, cy, s * 0.8);
+                    break;
+                default:
+                    points = ShapeGenerator.getCirclePoints(cx, cy, s);
+            }
             this.crowdManager.setMode('FORMATION', points);
         }
     }
