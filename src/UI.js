@@ -18,6 +18,33 @@ export class SandboxUI {
 
         // Subscribe to updates
         this.manager.subscribe(() => this.onSequenceUpdate());
+
+        // Global keyboard shortcuts: U to toggle UI, Space to toggle Play/Stop
+        this._keydownHandler = (e) => {
+            // Ignore when typing into inputs/textareas/selects
+            const active = document.activeElement;
+            const tag = active && active.tagName ? active.tagName.toLowerCase() : null;
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || active?.isContentEditable) return;
+
+            // Toggle UI visibility with "U" or "u"
+            if (e.key === 'u' || e.key === 'U') {
+                e.preventDefault();
+                this.toggleUIVisibility();
+            }
+
+            // Toggle Play/Stop with Space (use code to be robust)
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (this.manager.isPlaying) {
+                    this.manager.stop();
+                } else {
+                    this.manager.start();
+                }
+                // Ensure UI reflects new play state
+                this.manager.emitChange();
+            }
+        };
+        window.addEventListener('keydown', this._keydownHandler);
     }
 
     render() {
@@ -257,6 +284,20 @@ export class SandboxUI {
             durEl.onchange = (e) => {
                 this.manager.updateFrame(this.selectedFrameIndex, { duration: parseFloat(e.target.value) });
             };
+        }
+    }
+
+    // New helper to toggle UI visibility
+    toggleUIVisibility() {
+        // Toggle a 'hidden' class on the root to hide/show all UI elements
+        this.root.classList.toggle('hidden');
+        // Ensure settings/inspector panels are hidden when root is hidden
+        if (this.root.classList.contains('hidden')) {
+            this.settingsPanelEl?.classList.add('hidden');
+            this.inspectorEl?.classList.add('hidden');
+        } else {
+            // restore settings panel state if needed
+            if (this.showSettings) this.settingsPanelEl?.classList.remove('hidden');
         }
     }
 
