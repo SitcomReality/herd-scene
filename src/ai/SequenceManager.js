@@ -14,20 +14,50 @@ export class SequenceManager {
         this.currentFrameIndex = -1;
         this.frameTimer = 0;
         this.isPlaying = false;
+        this.listeners = [];
+    }
+
+    subscribe(callback) {
+        this.listeners.push(callback);
+    }
+
+    emitChange() {
+        this.listeners.forEach(cb => cb(this));
     }
 
     addFrame(type, content, duration) {
         this.sequence.push({
+            id: Math.random().toString(36).substr(2, 9),
             type,
             content, // Text string or other data
             duration
         });
         console.log(`Frame added: ${type} "${content}" (${duration}s)`);
+        this.emitChange();
+    }
+
+    updateFrame(index, updates) {
+        if (this.sequence[index]) {
+            Object.assign(this.sequence[index], updates);
+            // If we are currently playing this frame, we might want to re-apply it?
+            // For now, simple update is fine.
+            this.emitChange();
+        }
+    }
+
+    removeFrame(index) {
+        this.sequence.splice(index, 1);
+        if (this.currentFrameIndex >= this.sequence.length) {
+            this.currentFrameIndex = -1;
+            this.stop();
+        }
+        this.emitChange();
     }
 
     clearSequence() {
         this.sequence = [];
         this.stop();
+        this.emitChange();
     }
 
     start() {
@@ -36,12 +66,14 @@ export class SequenceManager {
         this.frameTimer = 0;
         this.isPlaying = true;
         this.applyFrame(this.sequence[0]);
+        this.emitChange();
     }
 
     stop() {
         this.isPlaying = false;
         this.currentFrameIndex = -1;
         this.crowdManager.setMode('WANDER');
+        this.emitChange();
     }
 
     update(dt) {
@@ -63,6 +95,7 @@ export class SequenceManager {
         }
         this.frameTimer = 0;
         this.applyFrame(this.sequence[this.currentFrameIndex]);
+        this.emitChange();
     }
 
     applyFrame(frame) {

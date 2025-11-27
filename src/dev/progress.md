@@ -13,8 +13,14 @@
 - [x] Updated SequenceManager to handle `SHAPE` frame types.
 - [x] Updated UI to include Shape selection and insertion.
 
+## Phase 3: UX Overhaul (Current)
+- [x] Implemented observable pattern in SequenceManager to support UI reactivity.
+- [x] Created custom "Visual Timeline" UI to replace debug controls.
+- [x] Added Inspector panel for fine-tuning individual frames.
+- [x] Added Global Settings panel for simulation parameters.
+
 ## Todo / Remaining
-- [ ] Implement visual timeline editor (currently just adds to invisible list).
+- [ ] Add drag-and-drop reordering to the timeline.
 - [ ] Add transitions/tweens for formation arrival (ease-in slow down).
 - [ ] "Hold" logic refinement: Make NPCs face camera more naturally after arriving.
 - [ ] Add "Explode" or "Scatter" transition effect between frames?
