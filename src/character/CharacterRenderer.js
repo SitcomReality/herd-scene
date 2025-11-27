@@ -234,7 +234,10 @@ export class CharacterRenderer {
 
         // Shadow
         const shadowYOffset = baseCenterY + visualBodyH / 2 + (limbH * c.variations.legLength) - 2;
-        c.shadow.position.y = shadowYOffset; // Relative to character container
+        // Position shadow in world space beneath the character.
+        // c.shadow is placed on the global shadow layer, so calculate world coords:
+        c.shadow.x = c.x;
+        c.shadow.y = c.y + (shadowYOffset * c.scale);
         // We set shadow scale Y to flatten it
         // c.shadow.scale was set to global scale earlier. 
         // We need to flatten it locally? 
