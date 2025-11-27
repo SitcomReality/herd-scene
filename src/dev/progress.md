@@ -18,6 +18,7 @@
 - [x] Created custom "Visual Timeline" UI to replace debug controls.
 - [x] Added Inspector panel for fine-tuning individual frames.
 - [x] Added Global Settings panel for simulation parameters.
+- [x] Implemented greedy minimum-distance target assignment to reduce NPC travel distances while maintaining shape diffusion.
 
 ## Todo / Remaining
 - [ ] Add drag-and-drop reordering to the timeline.
