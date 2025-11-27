@@ -64,60 +64,36 @@ export class CrowdManager {
                 finalTargetPoints = [...targetPoints];
             }
             
-            // Now, assign NPCs to finalTargetPoints prioritizing proximity (Greedy Assignment)
-            
-            // 1. Generate all possible assignments between available NPCs and selected points
-            const assignments = [];
-            for (let i = 0; i < npcControllers.length; i++) {
-                const controller = npcControllers[i];
-                const charPos = controller.character; 
-                
-                for (let j = 0; j < finalTargetPoints.length; j++) {
-                    const point = finalTargetPoints[j];
-                    const distanceSq = distSq(charPos, point);
-                    
-                    assignments.push({
-                        controller,
-                        point,
-                        distanceSq
-                    });
+            // Now, assign NPCs to finalTargetPoints using spatial sorting to avoid "last-chair" long treks.
+
+            // 1. Sort NPCs by position (primary X, secondary Y)
+            npcControllers.sort((a, b) => {
+                const ax = a.character.x;
+                const bx = b.character.x;
+                if (ax === bx) {
+                    return a.character.y - b.character.y;
                 }
-            }
-
-            // 2. Sort by minimum distance
-            assignments.sort((a, b) => a.distanceSq - b.distanceSq);
-
-            const assignedControllers = new Set();
-            const assignedPoints = new Set();
-            const assignmentsToApply = [];
-
-            // 3. Greedily assign closest available pairs
-            for (const assignment of assignments) {
-                const { controller, point } = assignment;
-                
-                // Use the controller instance and point object reference for Sets
-                if (!assignedControllers.has(controller) && !assignedPoints.has(point)) {
-                    assignmentsToApply.push({ controller, point });
-                    assignedControllers.add(controller);
-                    assignedPoints.add(point);
-
-                    // We only need to assign min(N_npc, N_points_selected) pairs.
-                    if (assignmentsToApply.length === Math.min(npcCount, finalTargetPoints.length)) {
-                        break;
-                    }
-                }
-            }
-
-            // 4. Apply assignments and handle unassigned NPCs
-            npcControllers.forEach(controller => {
-                const assignment = assignmentsToApply.find(a => a.controller === controller);
-                
-                if (assignment) {
-                    controller.setFormationTarget(assignment.point);
-                } else {
-                    controller.clearFormationTarget(); 
-                }
+                return ax - bx;
             });
+
+            // 2. Sort points by position (primary X, secondary Y)
+            finalTargetPoints.sort((p1, p2) => {
+                if (p1.x === p2.x) {
+                    return p1.y - p2.y;
+                }
+                return p1.x - p2.x;
+            });
+
+            // 3. Pair by index so nearby NPCs get nearby points along the sweep
+            const pairs = Math.min(npcCount, finalTargetPoints.length);
+            for (let i = 0; i < pairs; i++) {
+                npcControllers[i].setFormationTarget(finalTargetPoints[i]);
+            }
+
+            // 4. Any extra NPCs without a target go back to wandering behavior
+            for (let i = pairs; i < npcCount; i++) {
+                npcControllers[i].clearFormationTarget();
+            }
         }
     }
 
