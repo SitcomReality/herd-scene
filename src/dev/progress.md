@@ -19,6 +19,9 @@
 - [x] Added Inspector panel for fine-tuning individual frames.
 - [x] Added Global Settings panel for simulation parameters.
 - [x] Implemented greedy minimum-distance target assignment to reduce NPC travel distances while maintaining shape diffusion.
+- [x] Refined formation target assignment to reduce late “musical chairs” cross-map treks.
+- [x] Added multiline TEXT frame support so multiple lines render as separate rows.
+- [x] Added keyboard shortcuts: U to hide/show UI, Space to toggle Play/Stop.
 
 ## Todo / Remaining
 - [ ] Add drag-and-drop reordering to the timeline.
