@@ -45,34 +45,48 @@ export class Inspector {
             contentInput = `<div class="form-group"><label>Type</label><div class="badge">WANDER</div></div>`;
         }
 
-        this.inspectorContentEl.innerHTML = `
-            ${contentInput}
-            <div class="form-group">
-                <label>Duration (seconds)</label>
-                <input type="number" id="insp-duration" value="${frame.duration}" step="0.5" min="0.5">
-            </div>
-        `;
+        // Preserve focus if user is actively editing the content textarea.
+        const active = document.activeElement;
+        const isEditingContent = active && active.id === 'insp-content';
 
-        // Bind inputs
-        const contentEl = this.inspectorContentEl.querySelector('#insp-content');
-        if (contentEl) {
-            // For textarea we want live updates; for select use change
-            if (contentEl.tagName.toLowerCase() === 'textarea') {
-                contentEl.oninput = (e) => {
-                    this.manager.updateFrame(this.ui.selectedFrameIndex, { content: e.target.value });
-                };
-            } else {
-                contentEl.onchange = (e) => {
-                    this.manager.updateFrame(this.ui.selectedFrameIndex, { content: e.target.value });
+        if (isEditingContent && frame.type === FRAME_TYPES.TEXT) {
+            // Don't replace the entire content while user is typing.
+            // Only update the duration field if present.
+            const durElExisting = this.inspectorContentEl.querySelector('#insp-duration');
+            if (durElExisting) {
+                durElExisting.value = frame.duration;
+            }
+        } else {
+            // Safe to fully re-render inspector contents
+            this.inspectorContentEl.innerHTML = `
+                ${contentInput}
+                <div class="form-group">
+                    <label>Duration (seconds)</label>
+                    <input type="number" id="insp-duration" value="${frame.duration}" step="0.5" min="0.5">
+                </div>
+            `;
+
+            // Bind inputs
+            const contentEl = this.inspectorContentEl.querySelector('#insp-content');
+            if (contentEl) {
+                // For textarea we want live updates; for select use change
+                if (contentEl.tagName.toLowerCase() === 'textarea') {
+                    contentEl.oninput = (e) => {
+                        this.manager.updateFrame(this.ui.selectedFrameIndex, { content: e.target.value });
+                    };
+                } else {
+                    contentEl.onchange = (e) => {
+                        this.manager.updateFrame(this.ui.selectedFrameIndex, { content: e.target.value });
+                    };
+                }
+            }
+
+            const durEl = this.inspectorContentEl.querySelector('#insp-duration');
+            if (durEl) {
+                durEl.onchange = (e) => {
+                    this.manager.updateFrame(this.ui.selectedFrameIndex, { duration: parseFloat(e.target.value) });
                 };
             }
-        }
-
-        const durEl = this.inspectorContentEl.querySelector('#insp-duration');
-        if (durEl) {
-            durEl.onchange = (e) => {
-                this.manager.updateFrame(this.ui.selectedFrameIndex, { duration: parseFloat(e.target.value) });
-            };
         }
     }
 }
