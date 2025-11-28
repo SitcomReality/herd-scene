@@ -172,6 +172,14 @@ export class SandboxUI {
         // unless we expose it in App. Let's assume App exposes it or we just skip detailed AI tuning for this pass.
         // Actually, we can hook into game.crowdManager if we want? 
         // Let's stick to valid scopes. We'll skip deep AI params in this iteration to ensure stability.
+        
+        // Wire the Game Speed slider to the game's globalSpeed setting so simulation scales properly
+        const gameSpeedEl = this.byId('game-speed-slider');
+        if (gameSpeedEl) {
+            gameSpeedEl.oninput = (e) => {
+                this.game.settings.globalSpeed = parseFloat(e.target.value);
+            };
+        }
     }
 
     populate(count) {
