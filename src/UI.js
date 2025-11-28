@@ -61,6 +61,7 @@ export class SandboxUI {
                     <button class="btn" id="add-wander-btn"><span>〰</span> Wander</button>
                 </div>
                 <div class="toolbar-group">
+                    <button class="btn" id="share-btn">🔗 Share</button>
                     <button class="btn" id="settings-toggle">⚙️ Settings</button>
                 </div>
             </div>
@@ -132,6 +133,16 @@ export class SandboxUI {
         this.byId('add-shape-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.SHAPE, 'HEART', 5);
         this.byId('add-wander-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.WANDER, null, 5);
         
+        this.byId('share-btn').onclick = () => {
+             const url = this.game.getShareLink();
+             navigator.clipboard.writeText(url).then(() => {
+                 alert("Timeline URL copied to clipboard!");
+             }).catch(err => {
+                 console.error("Failed to copy", err);
+                 prompt("Copy this URL manually:", url);
+             });
+        };
+
         // Playback
         this.byId('play-btn').onclick = () => this.manager.start();
         this.byId('stop-btn').onclick = () => this.manager.stop();
@@ -194,6 +205,13 @@ export class SandboxUI {
 
     updateSettingsValues() {
         this.byId('count-display').textContent = this.game.characters.length;
+        
+        // Sync sliders
+        const speedSlider = this.byId('game-speed-slider');
+        if (speedSlider) speedSlider.value = this.game.settings.globalSpeed;
+
+        const scaleSlider = this.byId('scale-slider');
+        if (scaleSlider) scaleSlider.value = this.game.settings.globalScale;
     }
 
     onSequenceUpdate() {

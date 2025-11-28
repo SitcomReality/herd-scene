@@ -25,6 +25,23 @@ export class SequenceManager {
         this.listeners.forEach(cb => cb(this));
     }
 
+    exportData() {
+        return this.sequence.map(f => ({
+            t: f.type,
+            c: f.content,
+            d: f.duration
+        }));
+    }
+
+    importData(data) {
+        this.clearSequence();
+        if (Array.isArray(data)) {
+            data.forEach(f => {
+                this.addFrame(f.t, f.c, f.d);
+            });
+        }
+    }
+
     addFrame(type, content, duration) {
         this.sequence.push({
             id: Math.random().toString(36).substr(2, 9),

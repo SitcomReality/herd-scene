@@ -5,6 +5,20 @@ import { ANIMATION_STATES } from './constants.js';
 import { CrowdManager } from './ai/CrowdManager.js';
 import { SequenceManager, FRAME_TYPES } from './ai/SequenceManager.js';
 
+// Unicode-safe Base64 helpers
+function b64EncodeUnicode(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+        function toSolidBytes(match, p1) {
+            return String.fromCharCode('0x' + p1);
+    }));
+}
+
+function b64DecodeUnicode(str) {
+    return decodeURIComponent(atob(str).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+
 class GameApp {
     constructor() {
         // Ensure window title matches the app name
@@ -48,17 +62,21 @@ class GameApp {
         // Initialize UI
         this.ui = new SandboxUI(this);
 
-        // Pre-populate Sequence
-        this.sequenceManager.addFrame(FRAME_TYPES.TEXT, "SITCOM\nREALITY", 15);
-        this.sequenceManager.addFrame(FRAME_TYPES.SHAPE, "HEART", 15);
+        // Initialization Logic
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('s');
 
-        // Initial Population
-        // Add enough to make a shape visible immediately?
-        for(let i=0; i<400; i++) {
-             this.addCharacter(
-                 Math.random() * window.innerWidth, 
-                 Math.random() * window.innerHeight
-             );
+        if (encodedData) {
+            try {
+                const json = b64DecodeUnicode(encodedData);
+                const data = JSON.parse(json);
+                this.initFromData(data);
+            } catch (e) {
+                console.error("Failed to load sequence from URL", e);
+                this.initDefault();
+            }
+        } else {
+            this.initDefault();
         }
 
         // Event Listeners
@@ -66,6 +84,56 @@ class GameApp {
         
         // Game Loop
         this.app.ticker.add((delta) => this.update(delta));
+    }
+
+    initDefault() {
+        // Pre-populate Sequence
+        this.sequenceManager.addFrame(FRAME_TYPES.TEXT, "SITCOM\nREALITY", 15);
+        this.sequenceManager.addFrame(FRAME_TYPES.SHAPE, "HEART", 15);
+        this.populate(400);
+    }
+
+    initFromData(data) {
+        // Apply settings
+        if (typeof data.s === 'number') {
+            this.settings.globalSpeed = data.s;
+        }
+        
+        // Apply Sequence
+        if (data.q && Array.isArray(data.q)) {
+            this.sequenceManager.importData(data.q);
+        }
+
+        // Apply Population (Clamp to reasonable limits)
+        let count = typeof data.c === 'number' ? data.c : 400;
+        count = Math.max(0, Math.min(count, 3000));
+        this.populate(count);
+        
+        // Update UI to reflect loaded settings
+        this.ui.updateSettingsValues();
+    }
+
+    populate(count) {
+        for(let i=0; i<count; i++) {
+             this.addCharacter(
+                 Math.random() * window.innerWidth, 
+                 Math.random() * window.innerHeight
+             );
+        }
+    }
+
+    getShareLink() {
+        const state = {
+            c: this.characters.length,
+            s: this.settings.globalSpeed,
+            q: this.sequenceManager.exportData()
+        };
+        const json = JSON.stringify(state);
+        const b64 = b64EncodeUnicode(json);
+        
+        const url = new URL(window.location.href);
+        url.searchParams.set('s', b64);
+        return url.toString();
     }
 
     addCharacter(x, y) {
