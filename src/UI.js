@@ -97,6 +97,10 @@ export class SandboxUI {
                     <input type="range" id="brain-speed-slider" min="0.1" max="5" step="0.1" value="1">
                 </div>
                 <div class="form-group">
+                    <label>Game Speed</label>
+                    <input type="range" id="game-speed-slider" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <div class="form-group">
                      <button class="btn" id="randomize-colors">Randomize Colors</button>
                 </div>
             </div>
