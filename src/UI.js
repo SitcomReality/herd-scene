@@ -134,13 +134,21 @@ export class SandboxUI {
         this.byId('add-wander-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.WANDER, null, 5);
         
         this.byId('share-btn').onclick = () => {
-             const url = this.game.getShareLink();
-             navigator.clipboard.writeText(url).then(() => {
-                 alert("Timeline URL copied to clipboard!");
-             }).catch(err => {
-                 console.error("Failed to copy", err);
-                 prompt("Copy this URL manually:", url);
-             });
+             try {
+                 // Get the game's full share URL, extract the encoded 's' param, and attach to fixed base.
+                 const full = this.game.getShareLink();
+                 const encoded = new URL(full).searchParams.get('s');
+                 const shareUrl = `https://herd-scene.on.websim.com/?s=${encodeURIComponent(encoded)}`;
+                 navigator.clipboard.writeText(shareUrl).then(() => {
+                     alert("Timeline URL copied to clipboard!");
+                 }).catch(err => {
+                     console.error("Failed to copy", err);
+                     prompt("Copy this URL manually:", shareUrl);
+                 });
+             } catch (err) {
+                 console.error("Failed to build share URL", err);
+                 alert("Unable to build share link.");
+             }
         };
 
         // Playback
