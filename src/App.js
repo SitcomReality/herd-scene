@@ -129,8 +129,11 @@ class GameApp {
         this.sequenceManager.update(dtSeconds);
 
         // AI Update
+        // Compute simulation delta scaled by globalSpeed so movement & animation speed follow the Game Speed slider
+        const simDt = dtSeconds * this.settings.globalSpeed;
+
         if (this.settings.useAI) {
-            this.crowdManager.update(dtSeconds);
+            this.crowdManager.update(simDt);
         }
 
         // Sort by Y for simple depth effect
@@ -160,7 +163,8 @@ class GameApp {
             char.scale = this.settings.globalScale;
 
             // Pass seconds to character update (animations expect time in seconds)
-            char.update(dtSeconds);
+            // Use simDt so character movement & animation follow Game Speed, while timeline remains real-time
+            char.update(simDt);
 
             // Use the renderer-computed groundY as zIndex so sorting respects 'shadow height'.
             // Fallback to character y if groundY is not yet available.
