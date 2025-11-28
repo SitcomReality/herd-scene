@@ -1,6 +1,8 @@
 import { FRAME_TYPES } from './ai/SequenceManager.js';
 import { ANIMATION_STATES } from './constants.js';
 import { Tutorial } from './Tutorial.js';
+import { Timeline } from './ui/Timeline.js';
+import { Inspector } from './ui/Inspector.js';
 
 export class SandboxUI {
     constructor(game) {
@@ -20,6 +22,10 @@ export class SandboxUI {
 
         // Start Tutorial
         this.tutorial = new Tutorial(this);
+
+        // Create submodules
+        this.timeline = new Timeline(this);
+        this.inspector = new Inspector(this);
 
         // Subscribe to updates
         this.manager.subscribe(() => this.onSequenceUpdate());
@@ -186,12 +192,6 @@ export class SandboxUI {
             this.game.settings.globalScale = parseFloat(e.target.value);
         };
         
-        // Need to access NPC_PARAMS via import or if exposed on window. 
-        // For now, let's assume we can modify them if we import them, but we can't easily import a live object from here 
-        // unless we expose it in App. Let's assume App exposes it or we just skip detailed AI tuning for this pass.
-        // Actually, we can hook into game.crowdManager if we want? 
-        // Let's stick to valid scopes. We'll skip deep AI params in this iteration to ensure stability.
-        
         // Wire the Game Speed slider to the game's globalSpeed setting so simulation scales properly
         const gameSpeedEl = this.byId('game-speed-slider');
         if (gameSpeedEl) {
@@ -223,88 +223,10 @@ export class SandboxUI {
     }
 
     onSequenceUpdate() {
-        // Full re-render of timeline (simple & robust for < 50 frames)
-        this.timelineEl.innerHTML = '';
+        // Delegate timeline rendering to Timeline module
+        this.timeline.render();
         
-        this.manager.sequence.forEach((frame, index) => {
-            const el = document.createElement('div');
-            el.className = `timeline-frame ${index === this.manager.currentFrameIndex ? 'active' : ''} ${index === this.selectedFrameIndex ? 'selected' : ''}`;
-            el.setAttribute('draggable', 'true');
-            
-            let icon = '❓';
-            let label = frame.content || '---';
-            if(frame.type === FRAME_TYPES.TEXT) icon = '𝗧';
-            if(frame.type === FRAME_TYPES.SHAPE) icon = '★';
-            if(frame.type === FRAME_TYPES.WANDER) { icon = '〰'; label = 'Wander'; }
-
-            el.innerHTML = `
-                <div class="frame-icon">${icon}</div>
-                <div class="frame-label">${label}</div>
-                <div class="frame-duration">${frame.duration}s</div>
-            `;
-
-            el.onclick = () => {
-                this.selectFrame(index);
-            };
-
-            // Drag-and-drop reordering handlers
-            el.addEventListener('dragstart', (e) => {
-                this.dragSourceIndex = index;
-                if (e.dataTransfer) {
-                    e.dataTransfer.effectAllowed = 'move';
-                    // Needed for Firefox
-                    e.dataTransfer.setData('text/plain', String(index));
-                }
-            });
-
-            el.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (e.dataTransfer) {
-                    e.dataTransfer.dropEffect = 'move';
-                }
-            });
-
-            el.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (this.dragSourceIndex === null || this.dragSourceIndex === index) return;
-
-                const seq = this.manager.sequence;
-                if (!seq || seq.length === 0) return;
-
-                // Capture current active and selected frame IDs before mutation
-                const activeIndex = this.manager.currentFrameIndex;
-                const activeId = (activeIndex >= 0 && activeIndex < seq.length) ? seq[activeIndex].id : null;
-                const selectedIndex = this.selectedFrameIndex;
-                const selectedId = (selectedIndex >= 0 && selectedIndex < seq.length) ? seq[selectedIndex].id : null;
-
-                const from = this.dragSourceIndex;
-                const to = index;
-
-                const [moved] = seq.splice(from, 1);
-                // Adjust target index if removing an earlier element shifts indices
-                const insertIndex = from < to ? to - 1 : to;
-                seq.splice(insertIndex, 0, moved);
-
-                // Recompute indices based on IDs so active/selected frames follow their data
-                const findIndexById = (id) => id == null ? -1 : seq.findIndex(f => f.id === id);
-
-                this.manager.currentFrameIndex = findIndexById(activeId);
-                this.selectedFrameIndex = findIndexById(selectedId);
-
-                this.dragSourceIndex = null;
-
-                // Notify manager/UI of sequence change
-                this.manager.emitChange();
-            });
-
-            el.addEventListener('dragend', () => {
-                this.dragSourceIndex = null;
-            });
-
-            this.timelineEl.appendChild(el);
-        });
-
-        // Update Play/Pause button text state
+        // Update Play/Pause button text state is handled by Timeline too (but keep backward-compatible hook)
         const playBtn = this.byId('play-btn');
         if (this.manager.isPlaying) {
             playBtn.textContent = '⏸ Pause';
@@ -315,78 +237,23 @@ export class SandboxUI {
             playBtn.onclick = () => this.manager.start();
             playBtn.classList.remove('btn-primary');
         }
+
+        // Also refresh inspector if selection changed externally
+        this.updateInspector();
     }
 
     selectFrame(index) {
         this.selectedFrameIndex = index;
         this.showSettings = false;
         this.settingsPanelEl.classList.add('hidden');
-        this.onSequenceUpdate(); // Re-render to show selection
+        // Re-render timeline and inspector
+        this.timeline.render();
         this.updateInspector();
     }
 
     updateInspector() {
-        const frame = this.manager.sequence[this.selectedFrameIndex];
-        if (!frame) {
-            this.inspectorEl.classList.add('hidden');
-            return;
-        }
-
-        this.inspectorEl.classList.remove('hidden');
-        
-        let contentInput = '';
-        if (frame.type === FRAME_TYPES.TEXT) {
-            // Use a textarea to allow multiple lines
-            contentInput = `
-                <div class="form-group">
-                    <label>Text (use Enter for new lines)</label>
-                    <textarea id="insp-content" style="width:100%; height:80px; background:#333; color:#fff; border:1px solid #555; padding:6px; border-radius:4px;">${frame.content || ''}</textarea>
-                </div>
-            `;
-        } else if (frame.type === FRAME_TYPES.SHAPE) {
-            contentInput = `
-                <div class="form-group">
-                    <label>Shape</label>
-                    <select id="insp-content">
-                        <option value="HEART" ${frame.content==='HEART'?'selected':''}>Heart</option>
-                        <option value="STAR" ${frame.content==='STAR'?'selected':''}>Star</option>
-                        <option value="CIRCLE" ${frame.content==='CIRCLE'?'selected':''}>Circle</option>
-                    </select>
-                </div>
-            `;
-        } else {
-            contentInput = `<div class="form-group"><label>Type</label><div class="badge">WANDER</div></div>`;
-        }
-
-        this.inspectorContentEl.innerHTML = `
-            ${contentInput}
-            <div class="form-group">
-                <label>Duration (seconds)</label>
-                <input type="number" id="insp-duration" value="${frame.duration}" step="0.5" min="0.5">
-            </div>
-        `;
-
-        // Bind inputs
-        const contentEl = this.inspectorContentEl.querySelector('#insp-content');
-        if (contentEl) {
-            // For textarea we want live updates; for select use change
-            if (contentEl.tagName.toLowerCase() === 'textarea') {
-                contentEl.oninput = (e) => {
-                    this.manager.updateFrame(this.selectedFrameIndex, { content: e.target.value });
-                };
-            } else {
-                contentEl.onchange = (e) => {
-                    this.manager.updateFrame(this.selectedFrameIndex, { content: e.target.value });
-                };
-            }
-        }
-
-        const durEl = this.inspectorContentEl.querySelector('#insp-duration');
-        if (durEl) {
-            durEl.onchange = (e) => {
-                this.manager.updateFrame(this.selectedFrameIndex, { duration: parseFloat(e.target.value) });
-            };
-        }
+        // Delegate inspector rendering and binding
+        this.inspector.render();
     }
 
     // New helper to toggle UI visibility
