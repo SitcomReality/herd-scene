@@ -78,6 +78,7 @@ export class SandboxUI {
                 <div class="toolbar-group">
                     <button class="btn" id="add-text-btn"><span style="font-weight:bold">T</span> Text</button>
                     <button class="btn" id="add-shape-btn"><span>★</span> Shape</button>
+                    <button class="btn" id="add-draw-btn"><span>✏️</span> Draw</button>
                     <button class="btn" id="add-wander-btn"><span>〰</span> Wander</button>
                 </div>
                 <div class="toolbar-group">
@@ -151,6 +152,7 @@ export class SandboxUI {
         // Toolbar
         this.byId('add-text-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.TEXT, 'HELLO', 5);
         this.byId('add-shape-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.SHAPE, 'HEART', 5);
+        this.byId('add-draw-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.DRAW, null, 5);
         this.byId('add-wander-btn').onclick = () => this.manager.addFrame(FRAME_TYPES.WANDER, null, 5);
         
         this.byId('share-btn').onclick = () => {
@@ -220,6 +222,7 @@ export class SandboxUI {
         const idsToToggle = [
             'add-text-btn',
             'add-shape-btn',
+            'add-draw-btn',
             'add-wander-btn',
             'share-btn',
             'clear-seq-btn'

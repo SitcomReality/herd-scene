@@ -41,6 +41,13 @@ export class Inspector {
                     </select>
                 </div>
             `;
+        } else if (frame.type === FRAME_TYPES.DRAW) {
+            contentInput = `
+                <div class="form-group">
+                    <label>Drawing (16×16)</label>
+                    <div id="insp-draw-grid" style="display:grid;grid-template-columns:repeat(16,1fr);gap:2px;background:#222;padding:4px;border-radius:4px;border:1px solid #555;"></div>
+                </div>
+            `;
         } else {
             contentInput = `<div class="form-group"><label>Type</label><div class="badge">WANDER</div></div>`;
         }
@@ -66,9 +73,9 @@ export class Inspector {
                 </div>
             `;
 
-            // Bind inputs
+            // Bind inputs for TEXT and SHAPE
             const contentEl = this.inspectorContentEl.querySelector('#insp-content');
-            if (contentEl) {
+            if (contentEl && frame.type !== FRAME_TYPES.DRAW) {
                 // For textarea we want live updates; for select use change
                 if (contentEl.tagName.toLowerCase() === 'textarea') {
                     contentEl.oninput = (e) => {
@@ -78,6 +85,43 @@ export class Inspector {
                     contentEl.onchange = (e) => {
                         this.manager.updateFrame(this.ui.selectedFrameIndex, { content: e.target.value });
                     };
+                }
+            }
+
+            // Bind DRAW grid
+            if (frame.type === FRAME_TYPES.DRAW) {
+                const grid = this.inspectorContentEl.querySelector('#insp-draw-grid');
+                if (grid) {
+                    // Ensure bitmap exists and is correct size
+                    if (!Array.isArray(frame.content) || frame.content.length !== 256) {
+                        frame.content = new Array(256).fill(0);
+                    }
+                    const pixels = frame.content;
+
+                    grid.innerHTML = '';
+                    for (let i = 0; i < 256; i++) {
+                        const cell = document.createElement('div');
+                        cell.style.width = '12px';
+                        cell.style.height = '12px';
+                        cell.style.borderRadius = '2px';
+                        cell.style.boxSizing = 'border-box';
+                        cell.style.cursor = 'pointer';
+                        cell.style.border = '1px solid #444';
+                        const setVisual = () => {
+                            if (pixels[i]) {
+                                cell.style.background = '#f4a261';
+                            } else {
+                                cell.style.background = 'transparent';
+                            }
+                        };
+                        setVisual();
+                        cell.onclick = () => {
+                            pixels[i] = pixels[i] ? 0 : 1;
+                            setVisual();
+                            this.manager.updateFrame(this.ui.selectedFrameIndex, { content: pixels });
+                        };
+                        grid.appendChild(cell);
+                    }
                 }
             }
 

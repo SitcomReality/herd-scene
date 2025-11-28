@@ -25,6 +25,7 @@ export class Timeline {
             if(frame.type === FRAME_TYPES.TEXT) icon = '𝗧';
             if(frame.type === FRAME_TYPES.SHAPE) icon = '★';
             if(frame.type === FRAME_TYPES.WANDER) { icon = '〰'; label = 'Wander'; }
+            if(frame.type === FRAME_TYPES.DRAW) { icon = '✏️'; label = 'Draw'; }
 
             el.innerHTML = `
                 <div class="frame-icon">${icon}</div>
