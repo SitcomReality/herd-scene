@@ -7,6 +7,8 @@ import { SequenceManager } from './ai/SequenceManager.js';
 
 class GameApp {
     constructor() {
+        // Ensure window title matches the app name
+        document.title = 'Herd Scene';
         this.characters = [];
         
         // Setup Pixi
