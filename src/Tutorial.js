@@ -1,47 +1,64 @@
 export class Tutorial {
-    constructor(ui) {
+    constructor(ui, options = {}) {
         this.ui = ui;
         this.currentStep = 0;
         this.isActive = true;
+        this.isShareView = !!options.shareView;
         
-        this.steps = [
-            {
-                title: "Welcome!",
-                text: "Herd Scene lets you choreograph crowd simulations using a timeline of events. This quick tour will show you the basics.",
-                target: null
-            },
-            {
-                title: "Create Frames",
-                text: "Start by adding new frames to your timeline using these buttons. You can add Text, Shapes, or tell the crowd to Wander.",
-                target: '.toolbar-group' // First group
-            },
-            {
-                title: "The Timeline",
-                text: "Your frames appear here in sequence. You can drag and drop them to reorder the sequence.",
-                target: '#timeline'
-            },
-            {
-                title: "Edit & Delete",
-                text: "Click any frame to select it. The Inspector panel will appear, letting you change text, shape type, duration, or delete the frame.",
-                target: '#inspector',
-                onStart: () => {
-                    // Try to select the first frame so the inspector actually appears
-                    if (this.ui.manager.sequence.length > 0) {
-                        this.ui.selectFrame(0);
-                    }
+        if (this.isShareView) {
+            // Simplified tutorial for "view received message" experience
+            this.steps = [
+                {
+                    title: "You've received a scene.",
+                    text: "Someone sent you this crowd scene to watch. Use the controls below to play or pause it.",
+                    target: '.playback-controls'
+                },
+                {
+                    title: "Hide the interface",
+                    text: "Press 'U' to hide or show the UI anytime so you can just watch the scene.",
+                    target: null
                 }
-            },
-            {
-                title: "Playback Control",
-                text: "Use these controls to Play or Stop the simulation. 'Clear Timeline' removes all frames.",
-                target: '.playback-controls'
-            },
-            {
-                title: "Shortcuts",
-                text: "• Press 'U' to hide/show the UI for a clean view.\n• Press 'Space' to toggle Play/Stop at any time.",
-                target: null
-            }
-        ];
+            ];
+        } else {
+            this.steps = [
+                {
+                    title: "Welcome!",
+                    text: "Herd Scene lets you choreograph crowd simulations using a timeline of events. This quick tour will show you the basics.",
+                    target: null
+                },
+                {
+                    title: "Create Frames",
+                    text: "Start by adding new frames to your timeline using these buttons. You can add Text, Shapes, or tell the crowd to Wander.",
+                    target: '.toolbar-group' // First group
+                },
+                {
+                    title: "The Timeline",
+                    text: "Your frames appear here in sequence. You can drag and drop them to reorder the sequence.",
+                    target: '#timeline'
+                },
+                {
+                    title: "Edit & Delete",
+                    text: "Click any frame to select it. The Inspector panel will appear, letting you change text, shape type, duration, or delete the frame.",
+                    target: '#inspector',
+                    onStart: () => {
+                        // Try to select the first frame so the inspector actually appears
+                        if (this.ui.manager.sequence.length > 0) {
+                            this.ui.selectFrame(0);
+                        }
+                    }
+                },
+                {
+                    title: "Playback Control",
+                    text: "Use these controls to Play or Stop the simulation. 'Clear Timeline' removes all frames.",
+                    target: '.playback-controls'
+                },
+                {
+                    title: "Shortcuts",
+                    text: "• Press 'U' to hide/show the UI for a clean view.\n• Press 'Space' to toggle Play/Stop at any time.",
+                    target: null
+                }
+            ];
+        }
 
         // Create Elements
         this.el = document.createElement('div');

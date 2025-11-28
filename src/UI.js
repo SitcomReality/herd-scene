@@ -12,6 +12,11 @@ export class SandboxUI {
         this.showSettings = false;
         this.dragSourceIndex = null; // for timeline drag-and-drop reordering
 
+        // Whether we are in "view received message" mode (loaded from shared URL)
+        this.isShareView = !!this.game.wasLoadedFromShare;
+        this.shareUiRestored = false;
+        this.lastFrameIndex = -1;
+
         // Create UI Root
         this.root = document.createElement('div');
         this.root.id = 'ui-root';
@@ -20,8 +25,17 @@ export class SandboxUI {
         this.render();
         this.bindEvents();
 
-        // Start Tutorial
-        this.tutorial = new Tutorial(this);
+        // Apply initial stripped-down UI if we are in share view mode
+        if (this.isShareView) {
+            this.applyShareViewHidden(true);
+            // Restore hidden UI after 15 seconds or earlier if the sequence completes one loop
+            this.shareRestoreTimeout = setTimeout(() => {
+                this.restoreShareViewUi();
+            }, 15000);
+        }
+
+        // Start Tutorial (simplified or full depending on mode)
+        this.tutorial = new Tutorial(this, { shareView: this.isShareView });
 
         // Create submodules
         this.timeline = new Timeline(this);
@@ -201,6 +215,43 @@ export class SandboxUI {
         }
     }
 
+    // Hide or show creation/sharing UI for share-view mode
+    applyShareViewHidden(hidden) {
+        const idsToToggle = [
+            'add-text-btn',
+            'add-shape-btn',
+            'add-wander-btn',
+            'share-btn',
+            'clear-seq-btn'
+        ];
+        idsToToggle.forEach(id => {
+            const el = this.byId(id);
+            if (el) {
+                el.classList.toggle('hidden', hidden);
+            }
+        });
+
+        // Timeline container
+        const timeline = this.byId('timeline');
+        if (timeline) {
+            timeline.classList.toggle('hidden', hidden);
+        }
+    }
+
+    restoreShareViewUi() {
+        if (!this.isShareView || this.shareUiRestored) return;
+        this.shareUiRestored = true;
+
+        // Clear timeout if still pending
+        if (this.shareRestoreTimeout) {
+            clearTimeout(this.shareRestoreTimeout);
+            this.shareRestoreTimeout = null;
+        }
+
+        // Reveal the full editing/sharing UI, but do NOT alter overall UI visibility (U toggle)
+        this.applyShareViewHidden(false);
+    }
+
     populate(count) {
         for(let i=0; i<count; i++) {
             this.game.addCharacter(
@@ -223,6 +274,19 @@ export class SandboxUI {
     }
 
     onSequenceUpdate() {
+        // Detect first loop completion in share view:
+        if (this.isShareView && !this.shareUiRestored) {
+            const seqLen = this.manager.sequence.length;
+            const idx = this.manager.currentFrameIndex;
+            if (this.manager.isPlaying && seqLen > 0) {
+                // Loop occurs when we move from last index to 0
+                if (this.lastFrameIndex === seqLen - 1 && idx === 0) {
+                    this.restoreShareViewUi();
+                }
+            }
+            this.lastFrameIndex = idx;
+        }
+
         // Delegate timeline rendering to Timeline module
         this.timeline.render();
         

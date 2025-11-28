@@ -59,8 +59,8 @@ class GameApp {
             globalRotation: Math.PI / 2, // Default side view
         };
 
-        // Initialize UI
-        this.ui = new SandboxUI(this);
+        // Flag to indicate if we loaded from a shared URL
+        this.wasLoadedFromShare = false;
 
         // Initialization Logic
         const urlParams = new URLSearchParams(window.location.search);
@@ -79,6 +79,11 @@ class GameApp {
             this.initDefault();
         }
 
+        // Initialize UI after data has been loaded (so it can adapt to share mode)
+        this.ui = new SandboxUI(this);
+        // Ensure UI reflects loaded settings
+        this.ui.updateSettingsValues();
+
         // Event Listeners
         this.app.view.addEventListener('pointerdown', (e) => this.onPointerDown(e));
         
@@ -94,6 +99,9 @@ class GameApp {
     }
 
     initFromData(data) {
+        // Mark that we came from a shared link
+        this.wasLoadedFromShare = true;
+
         // Apply settings
         if (typeof data.s === 'number') {
             this.settings.globalSpeed = data.s;
@@ -108,9 +116,11 @@ class GameApp {
         let count = typeof data.c === 'number' ? data.c : 400;
         count = Math.max(0, Math.min(count, 3000));
         this.populate(count);
-        
-        // Update UI to reflect loaded settings
-        this.ui.updateSettingsValues();
+
+        // Auto-start playback so the received message begins immediately
+        if (this.sequenceManager.sequence.length > 0) {
+            this.sequenceManager.start();
+        }
     }
 
     populate(count) {
