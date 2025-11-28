@@ -3,7 +3,7 @@ import { Character } from './Character.js';
 import { SandboxUI } from './UI.js';
 import { ANIMATION_STATES } from './constants.js';
 import { CrowdManager } from './ai/CrowdManager.js';
-import { SequenceManager } from './ai/SequenceManager.js';
+import { SequenceManager, FRAME_TYPES } from './ai/SequenceManager.js';
 
 class GameApp {
     constructor() {
@@ -47,6 +47,10 @@ class GameApp {
 
         // Initialize UI
         this.ui = new SandboxUI(this);
+
+        // Pre-populate Sequence
+        this.sequenceManager.addFrame(FRAME_TYPES.TEXT, "SITCOM\nREALITY", 15);
+        this.sequenceManager.addFrame(FRAME_TYPES.SHAPE, "HEART", 15);
 
         // Initial Population
         // Add enough to make a shape visible immediately?

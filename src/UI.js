@@ -1,5 +1,6 @@
 import { FRAME_TYPES } from './ai/SequenceManager.js';
 import { ANIMATION_STATES } from './constants.js';
+import { Tutorial } from './Tutorial.js';
 
 export class SandboxUI {
     constructor(game) {
@@ -16,6 +17,9 @@ export class SandboxUI {
 
         this.render();
         this.bindEvents();
+
+        // Start Tutorial
+        this.tutorial = new Tutorial(this);
 
         // Subscribe to updates
         this.manager.subscribe(() => this.onSequenceUpdate());
@@ -202,11 +206,7 @@ export class SandboxUI {
             `;
 
             el.onclick = () => {
-                this.selectedFrameIndex = index;
-                this.showSettings = false;
-                this.settingsPanelEl.classList.add('hidden');
-                this.onSequenceUpdate(); // Re-render to show selection
-                this.updateInspector();
+                this.selectFrame(index);
             };
 
             // Drag-and-drop reordering handlers
@@ -277,6 +277,14 @@ export class SandboxUI {
             playBtn.onclick = () => this.manager.start();
             playBtn.classList.remove('btn-primary');
         }
+    }
+
+    selectFrame(index) {
+        this.selectedFrameIndex = index;
+        this.showSettings = false;
+        this.settingsPanelEl.classList.add('hidden');
+        this.onSequenceUpdate(); // Re-render to show selection
+        this.updateInspector();
     }
 
     updateInspector() {

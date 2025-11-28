@@ -153,6 +153,61 @@
         /* Utility */
         .hidden { display: none !important; }
         .badge { background: #2A9D8F; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+
+        /* Tutorial Styles */
+        .tutorial-card {
+            position: absolute;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(8px);
+            color: #eee;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            max-width: 280px;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid #2A9D8F;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .tutorial-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #2A9D8F;
+        }
+        .tutorial-card p {
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #ccc;
+        }
+        .tutorial-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .tutorial-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .tutorial-btn:hover { background: rgba(255,255,255,0.2); }
+        .tutorial-btn.primary { background: #2A9D8F; border-color: #2A9D8F; color: #111; font-weight: bold; }
+        .tutorial-btn.primary:hover { background: #3AC1B0; }
+        
+        .tutorial-indicator {
+            position: absolute;
+            border: 2px solid #F4A261;
+            box-shadow: 0 0 12px rgba(244, 162, 97, 0.6);
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 1999;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
     </style>
     <script type="importmap">
         {
