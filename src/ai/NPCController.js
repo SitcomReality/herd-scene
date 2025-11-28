@@ -67,6 +67,9 @@ export class NPCController {
             return;
         }
 
+        // Not in formation behavior; ensure formation-hold flag is cleared
+        this.character.isInFormationHold = false;
+
         // Scale time by brainSpeed so host UI can speed up or slow down decision pacing
         const scaledDt = dt * NPC_PARAMS.brainSpeed;
         this.timer -= scaledDt;
@@ -95,6 +98,8 @@ export class NPCController {
             // Arrived: ease into a relaxed idle facing the camera (front)
             c.state = ANIMATION_STATES.IDLE;
             c.speed = 0.1; // Slow breathing
+            // Mark as holding formation so animation can apply subtle micro motion
+            c.isInFormationHold = true;
             
             // Face forward (0) smoothly, but more gently than when running
             const diff = this.shortestAngleDist(c.facing, 0); // 0 is front
@@ -111,6 +116,7 @@ export class NPCController {
             }
         } else {
             // Move towards target with eased slowdown as we approach
+            c.isInFormationHold = false;
 
             // Running animation, but we'll modulate actual movement speed by distance
             c.state = ANIMATION_STATES.RUN;
@@ -169,6 +175,8 @@ export class NPCController {
         this.currentTurnRate = 0;
         
         const c = this.character;
+        // Any explicit state change (idle/bend/wander) means we're not in a formation hold
+        c.isInFormationHold = false;
 
         if (newState === 'IDLE') {
             c.state = ANIMATION_STATES.IDLE;

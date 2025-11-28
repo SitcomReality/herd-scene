@@ -26,6 +26,6 @@
 - [x] Added eased formation arrival so NPCs slow down as they reach targets and settle into a natural front-facing idle pose.
 
 ## Todo / Remaining
-- [ ] "Hold" logic refinement: add subtle idle variation while holding formation (micro head/torso motion).
+- [x] "Hold" logic refinement: add subtle idle variation while holding formation (micro head/torso motion).
 - [ ] Add "Explode" or "Scatter" transition effect between frames?
 - [ ] Performance: Optimize spatial sort if NPC count > 1000.

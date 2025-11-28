@@ -96,6 +96,8 @@ export class CharacterAnimation {
             rightArm: 0
         };
 
+        const character = this.character;
+
         // Baseline idle parameters used by multiple states
         const idleBob = Math.sin(t * 0.05) * 2;
         const idleLArm = Math.sin(t * 0.05) * 0.1;
@@ -106,14 +108,33 @@ export class CharacterAnimation {
         const headNoise = Math.sin(t * 0.2) * 0.05 + Math.sin(t * 0.07 + 2) * 0.03;
 
         if (state === ANIMATION_STATES.IDLE) {
-            // Breathing / Bobbing
-            pose.bobOffset = idleBob;
-            pose.torsoTilt = Math.sin(t * 0.03) * 0.02; // Tiny torso drift
-            pose.headTilt = headNoise; // Look around slightly
-            pose.leftLeg = 0;
-            pose.rightLeg = 0;
-            pose.leftArm = idleLArm;
-            pose.rightArm = idleRArm;
+            // If we're in a formation hold, use an even more subtle, de-synced idle
+            if (character.isInFormationHold) {
+                const phase = stateTime + (character.idleNoiseSeed || 0);
+
+                const subtleBob = Math.sin(phase * 0.3) * 1.0;
+                const subtleTorso = Math.sin(phase * 0.2) * 0.03 + Math.sin(phase * 0.07 + 1.5) * 0.02;
+                const subtleHead = Math.sin(phase * 0.25) * 0.06 + Math.sin(phase * 0.11 + 0.8) * 0.03;
+
+                pose.bobOffset = subtleBob;
+                pose.torsoTilt = subtleTorso;
+                pose.headTilt = subtleHead;
+                pose.leftLeg = 0;
+                pose.rightLeg = 0;
+                // Very slight arm drift, almost still
+                pose.leftArm = Math.sin(phase * 0.2 + 0.5) * 0.05;
+                pose.rightArm = Math.cos(phase * 0.22 - 0.5) * 0.05;
+            } else {
+                // Standard standing idle
+                // Breathing / Bobbing
+                pose.bobOffset = idleBob;
+                pose.torsoTilt = Math.sin(t * 0.03) * 0.02; // Tiny torso drift
+                pose.headTilt = headNoise; // Look around slightly
+                pose.leftLeg = 0;
+                pose.rightLeg = 0;
+                pose.leftArm = idleLArm;
+                pose.rightArm = idleRArm;
+            }
         } 
         else if (state === ANIMATION_STATES.WALK) {
             pose.bobOffset = Math.abs(Math.sin(t * 0.5)) * 4; // Bob up and down

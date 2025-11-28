@@ -36,6 +36,11 @@ export class Character {
         // Limb Angles (radians)
         this.angles = { leftLeg: 0, rightLeg: 0, leftArm: 0, rightArm: 0 };
 
+        // Formation hold flag for subtle idle micro-motion
+        this.isInFormationHold = false;
+        // Per-character noise seed so idle micro-movements are de-synced
+        this.idleNoiseSeed = Math.random() * 1000;
+
         // Pixi container for character parts
         this.graphics = new PIXI.Container();
         this.graphics.x = x;
