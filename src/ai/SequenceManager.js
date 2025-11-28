@@ -214,7 +214,11 @@ export class SequenceManager {
             const pixels = Array.isArray(frame.content) ? frame.content : [];
             const points = [];
             if (pixels.length === 256) {
-                const size = Math.min(w, h) * 0.6;
+                // Make the drawing much larger so it spans closer to the top/bottom of the viewport.
+                // Previously: const size = Math.min(w, h) * 0.6;
+                // Increase to occupy more vertical space while leaving a small margin.
+                const marginFactor = 0.05; // 5% margin top/bottom
+                const size = Math.min(w, h * (1 - marginFactor * 2)); // prioritize vertical fit
                 const cell = size / 16;
                 const startX = (w - size) / 2;
                 const startY = (h - size) / 2;
