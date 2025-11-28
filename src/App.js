@@ -54,7 +54,7 @@ class GameApp {
 
         // Initial Population
         // Add enough to make a shape visible immediately?
-        for(let i=0; i<200; i++) {
+        for(let i=0; i<400; i++) {
              this.addCharacter(
                  Math.random() * window.innerWidth, 
                  Math.random() * window.innerHeight
