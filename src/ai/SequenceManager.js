@@ -215,24 +215,34 @@ export class SequenceManager {
             const points = [];
             if (pixels.length === 256) {
                 // Make the drawing much larger so it spans closer to the top/bottom of the viewport.
-                // Previously: const size = Math.min(w, h) * 0.6;
-                // Increase to occupy more vertical space while leaving a small margin.
                 const marginFactor = 0.05; // 5% margin top/bottom
                 const size = Math.min(w, h * (1 - marginFactor * 2)); // prioritize vertical fit
                 const cell = size / 16;
                 const startX = (w - size) / 2;
                 const startY = (h - size) / 2;
 
+                // To make drawn "pixels" thicker/solid, subsample each lit pixel into a small grid of points.
+                // This increases the effective area and number of formation targets per drawn pixel.
+                const samplesPerPixel = 3; // e.g., 3x3 samples per pixel -> 9 points per lit pixel
+                const sampleSpacing = cell / samplesPerPixel;
                 for (let y = 0; y < 16; y++) {
                     for (let x = 0; x < 16; x++) {
                         const idx = y * 16 + x;
                         if (pixels[idx]) {
-                            const baseX = startX + x * cell + cell / 2;
-                            const baseY = startY + y * cell + cell / 2;
-                            points.push({
-                                x: baseX + (Math.random() - 0.5) * cell * 0.8,
-                                y: baseY + (Math.random() - 0.5) * cell * 0.8
-                            });
+                            const pixelOriginX = startX + x * cell;
+                            const pixelOriginY = startY + y * cell;
+                            // center offset so samples are nicely distributed inside the pixel cell
+                            const offset = (cell - (samplesPerPixel - 1) * sampleSpacing) / 2;
+                            for (let sy = 0; sy < samplesPerPixel; sy++) {
+                                for (let sx = 0; sx < samplesPerPixel; sx++) {
+                                    const sampleX = pixelOriginX + offset + sx * sampleSpacing + (Math.random() - 0.5) * (sampleSpacing * 0.4);
+                                    const sampleY = pixelOriginY + offset + sy * sampleSpacing + (Math.random() - 0.5) * (sampleSpacing * 0.4);
+                                    points.push({
+                                        x: sampleX,
+                                        y: sampleY
+                                    });
+                                }
+                            }
                         }
                     }
                 }
