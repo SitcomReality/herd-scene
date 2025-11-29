@@ -88,8 +88,40 @@ export class CrowdManager {
             }
 
             // 4. Any extra NPCs without a target go back to wandering behavior
-            for (let i = pairs; i < npcCount; i++) {
-                npcControllers[i].clearFormationTarget();
+            // If there are more NPCs than points, have the extras run toward edge-flee points
+            if (npcCount > finalTargetPoints.length) {
+                // Generate a set of edge targets (spread around the viewport edges)
+                const screen = this.app.screen;
+                const edgeTargets = [];
+                // Create one edge target per extra NPC distributed around edges
+                const extras = npcCount - finalTargetPoints.length;
+                for (let i = 0; i < extras; i++) {
+                    // Choose an edge (0=top,1=right,2=bottom,3=left) and a random offset along that edge
+                    const edge = i % 4;
+                    const t = (i / extras); // spreads along edges
+                    if (edge === 0) { // top
+                        edgeTargets.push({ x: screen.width * (0.1 + 0.8 * t), y: -50 });
+                    } else if (edge === 1) { // right
+                        edgeTargets.push({ x: screen.width + 50, y: screen.height * (0.1 + 0.8 * t) });
+                    } else if (edge === 2) { // bottom
+                        edgeTargets.push({ x: screen.width * (0.9 - 0.8 * t), y: screen.height + 50 });
+                    } else { // left
+                        edgeTargets.push({ x: -50, y: screen.height * (0.9 - 0.8 * t) });
+                    }
+                }
+
+                // Assign edge targets to the remaining NPC controllers
+                for (let i = pairs; i < npcCount; i++) {
+                    const extraIndex = i - pairs;
+                    const target = edgeTargets[extraIndex % edgeTargets.length];
+                    // Use setFormationTarget so NPCController will actively move to the point
+                    npcControllers[i].setFormationTarget(target);
+                }
+            } else {
+                // No extras, ensure none are left in formation without a point
+                for (let i = pairs; i < npcCount; i++) {
+                    npcControllers[i].clearFormationTarget();
+                }
             }
         }
     }
